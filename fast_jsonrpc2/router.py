@@ -1,10 +1,11 @@
+from six import iteritems
 
 
 class Router(dict):
     def __init__(self, routes=None):
         if routes:
             if isinstance(routes, dict):
-                for name, method in routes.iteritems():
+                for name, method in iteritems(routes):
                     self.add_method(name, method)
             else:
                 raise RouterException(

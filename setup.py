@@ -12,12 +12,10 @@ VERSION = imp.load_source(
     path.join(here, 'fast_jsonrpc2', 'version.py')
 )
 VERSION = VERSION.__version__
-with open(os.path.join(here, 'README.rst')) as f:
+with open(os.path.join(here, 'README.md')) as f:
     README = f.read()
-with open(os.path.join(here, 'CHANGES.rst')) as f:
+with open(os.path.join(here, 'CHANGES.md')) as f:
     CHANGES = f.read()
-with open(os.path.join(here, 'requirements.txt')) as f:
-    REQUIRES = f.read().split('\n')
 
 setup(
     name="fast-jsonrpc2",
@@ -25,7 +23,7 @@ setup(
     packages=find_packages(),
     setup_requires=['pytest-runner'],
     tests_require=["pytest", "mock", "py-cov"],
-    install_requires=REQUIRES,
+    install_requires=['six==1.10.0'],
 
     # metadata for upload to PyPI
     author="Lahache Stephane",
