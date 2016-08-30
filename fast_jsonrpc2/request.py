@@ -48,7 +48,7 @@ class RequestHandler(object):
             method = self.router[request['method']]
         except InvalidRequestException as e:
             return self.response_handler.get_invalid_request_response(
-                data=e.message,
+                data=e.args[0],
                 id=id
             )
         except KeyError:
@@ -70,11 +70,11 @@ class RequestHandler(object):
                     not is_valid_params(method, params)
                 ):
                     return self.response_handler.get_invalid_params_response(
-                        data=e.message, id=id
+                        data=e.args[0], id=id
                     )
                 else:
                     return self.response_handler.get_internal_error_response(
-                        data=e.message, id=id
+                        data=e.args[0], id=id
                     )
             else:
                 # is notification ?

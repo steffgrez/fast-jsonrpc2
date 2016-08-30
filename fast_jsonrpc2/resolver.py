@@ -44,6 +44,7 @@ class JSONRPCResolver(object):
         )
 
     def handle(self, str_request):
+        response = None
         try:
             # handle encoding
             if isinstance(str_request, bytes):
@@ -68,7 +69,7 @@ class JSONRPCResolver(object):
         except Exception as e:
             # handle unexpected exception
             response = self.response_handler.get_internal_error_response(
-                data=e.message
+                data=e.args[0]
             )
         finally:
             # return serialized result
