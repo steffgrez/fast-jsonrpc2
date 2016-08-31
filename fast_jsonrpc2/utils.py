@@ -20,9 +20,9 @@ def is_valid_params(func, params):
     else:
         params_keys = set(params.keys())
         if (
-            len(params_keys) > len(spec.args) or
-            len(set(params_keys) & set(required)) != len(required) or
-            len(set(params_keys) - set(spec.args)) > 0
+                len(params_keys) > len(spec.args) or
+                len(set(params_keys) & set(required)) != len(required) or
+                len(set(params_keys) - set(spec.args)) > 0
         ):
             return False
 

@@ -71,9 +71,9 @@ class JSONRPCResolver(object):
             response = self.response_handler.get_internal_error_response(
                 data=e.args[0]
             )
-        finally:
-            # return serialized result
-            return self.serializer.dumps(response) if response else ''
+
+        # return serialized result
+        return self.serializer.dumps(response) if response else ''
 
 
 class JSONRPCException(Exception):
