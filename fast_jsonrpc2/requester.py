@@ -24,5 +24,5 @@ json_request = batch_requester.get_request()
 
 
 class JSONRPCRequester(object):
-    def __init__():
+    def __init__(self):
         pass

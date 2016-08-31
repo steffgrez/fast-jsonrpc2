@@ -40,7 +40,7 @@ class RequestHandler(object):
                 data="Request should be an object (dict)",
             )
 
-        id = request['id'] if 'id' in request else None
+        request_id = request['id'] if 'id' in request else None
 
         # check request and determine method to execute
         try:
@@ -49,10 +49,12 @@ class RequestHandler(object):
         except InvalidRequestException as e:
             return self.response_handler.get_invalid_request_response(
                 data=e.args[0],
-                id=id
+                request_id=request_id
             )
         except KeyError:
-            return self.response_handler.get_method_not_foud_response(id=id)
+            return self.response_handler.get_method_not_foud_response(
+                request_id=request_id
+            )
         else:
             # try to execute method
             params = request['params'] if 'params' in request else None
@@ -66,26 +68,28 @@ class RequestHandler(object):
             except Exception as e:
                 # determine type of error
                 if (
-                    isinstance(e, TypeError) and
-                    not is_valid_params(method, params)
+                        isinstance(e, TypeError) and
+                        not is_valid_params(method, params)
                 ):
                     return self.response_handler.get_invalid_params_response(
-                        data=e.args[0], id=id
+                        data=e.args[0], request_id=request_id
                     )
                 else:
                     return self.response_handler.get_internal_error_response(
-                        data=e.args[0], id=id
+                        data=e.args[0], request_id=request_id
                     )
             else:
                 # is notification ?
-                if id:
+                if request_id:
                     return self.response_handler.get_response(
-                        result=result, id=id
+                        result=result, request_id=request_id
                     )
                 else:
                     return ''
 
     def check_request(self, request):
+        # allow lazy check for performance
+        if not self.lazy_check:
             # check request's keys
             request_keys = set(request.keys())
             extra = request_keys - self.POSSIBLE_FIELDS
@@ -98,45 +102,43 @@ class RequestHandler(object):
                 )
                 raise InvalidRequestException(msg.format(extra, missed))
 
-            # allow lazy check for performance
-            if not self.lazy_check:
-                # check jsonrpc's version
-                if request['jsonrpc'] != self.JSONRPC_VERSION:
+            # check jsonrpc's version
+            if request['jsonrpc'] != self.JSONRPC_VERSION:
+                raise InvalidRequestException(
+                    'version of the JSON-RPC protocol '
+                    'MUST be exactly "2.0"'
+                )
+
+            # check method
+            method = request['method']
+            if not isinstance(method, six.string_types):
+                raise InvalidRequestException("Method should be string")
+
+            if method.startswith("rpc."):
+                raise InvalidRequestException(
+                    "Method names that begin with the word rpc followed "
+                    "by a period character (U+002E or ASCII 46) are "
+                    "reserved for rpc-internal methods and extensions "
+                    "and MUST NOT be used for anything else."
+                )
+
+            # check params
+            if 'params' in request:
+                params = request['params']
+                params_check = isinstance(params, (list, tuple, dict))
+                if params and not params_check:
                     raise InvalidRequestException(
-                        'version of the JSON-RPC protocol '
-                        'MUST be exactly "2.0"'
+                        "Incorrect params: {0}".format(params)
                     )
 
-                # check method
-                method = request['method']
-                if not isinstance(method, six.string_types):
-                    raise InvalidRequestException("Method should be string")
-
-                if method.startswith("rpc."):
+            # check id
+            if 'id' in request:
+                request_id = request['id']
+                instances = six.string_types + six.integer_types
+                if request_id and not isinstance(request_id, instances):
                     raise InvalidRequestException(
-                        "Method names that begin with the word rpc followed "
-                        "by a period character (U+002E or ASCII 46) are "
-                        "reserved for rpc-internal methods and extensions "
-                        "and MUST NOT be used for anything else."
+                        "Incorrect id: {0}".format(request_id)
                     )
-
-                # check params
-                if 'params' in request:
-                    params = request['params']
-                    params_check = isinstance(params, (list, tuple, dict))
-                    if params and not params_check:
-                        raise InvalidRequestException(
-                            "Incorrect params: {0}".format(params)
-                        )
-
-                # check id
-                if 'id' in request:
-                    id = request['id']
-                    instances = six.string_types + six.integer_types
-                    if id and not isinstance(id, instances):
-                        raise InvalidRequestException(
-                            "Incorrect id: {0}".format(id)
-                        )
 
 
 class InvalidRequestException(Exception):
