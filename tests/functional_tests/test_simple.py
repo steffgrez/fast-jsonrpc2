@@ -95,6 +95,4 @@ def test_init(query, expected):
     result = resolver.handle(query)
     decoded_result = json.loads(result) if result else result
 
-    pprint.pprint(decoded_expected)
-    pprint.pprint(decoded_result)
     assert decoded_expected == decoded_result

@@ -4,6 +4,8 @@
 
     $ py.test --cov=fast_jsonrpc2 --cov-report term-missing tests/
 
+    $ python setup.py test -a "-epy27"
+
 
 ### Linter
 

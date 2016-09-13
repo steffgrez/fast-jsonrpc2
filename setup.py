@@ -1,17 +1,41 @@
 #!/usr/bin/env python
-import imp
 import os
+import sys
 from os import path
 
 from setuptools import setup, find_packages
+from setuptools.command.test import test as TestCommand
+
+
+class ToxTest(TestCommand):
+    user_options = [('tox-args=', 'a', "Arguments to pass to tox")]
+
+    def initialize_options(self):
+        TestCommand.initialize_options(self)
+        self.tox_args = None
+
+    def finalize_options(self):
+        TestCommand.finalize_options(self)
+        self.test_args = []
+        self.test_suite = True
+
+    def run_tests(self):
+        # import here, cause outside the eggs aren't loaded
+        import tox
+        import shlex
+        args = self.tox_args
+        if args:
+            args = shlex.split(self.tox_args)
+        else:
+            args = []
+        errno = tox.cmdline(args=args)
+        sys.exit(errno)
 
 
 here = os.path.abspath(os.path.dirname(__file__))
-VERSION = imp.load_source(
-    'version',
-    path.join(here, 'fast_jsonrpc2', 'version.py')
-)
-VERSION = VERSION.__version__
+with open('fast_jsonrpc2/version.py') as f:
+    exec(f.read())
+
 with open(os.path.join(here, 'README.md')) as f:
     README = f.read()
 with open(os.path.join(here, 'CHANGES.md')) as f:
@@ -19,10 +43,10 @@ with open(os.path.join(here, 'CHANGES.md')) as f:
 
 setup(
     name="fast-jsonrpc2",
-    version=VERSION,
+    version=__version__,
     packages=find_packages(),
-    setup_requires=['pytest-runner'],
-    tests_require=["pytest", "mock", "py-cov"],
+    tests_require=['tox'],
+    cmdclass = {'test': ToxTest},
     install_requires=['six==1.10.0'],
 
     # metadata for upload to PyPI
